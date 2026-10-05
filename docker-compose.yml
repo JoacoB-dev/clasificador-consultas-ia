@@ -1,0 +1,65 @@
+# Levanta todo: PostgreSQL, Redis, API (8083), worker RQ y panel web (5174)
+# Uso: docker compose up --build   ->  http://localhost:5174
+name: consultas
+
+services:
+  db:
+    image: postgres:16-alpine
+    container_name: consultas-db
+    environment:
+      POSTGRES_USER: consultas
+      POSTGRES_PASSWORD: consultas
+      POSTGRES_DB: consultas
+    volumes:
+      - consultas-datos:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U consultas"]
+      interval: 3s
+      retries: 20
+
+  redis:
+    image: redis:7-alpine
+    container_name: consultas-redis
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 3s
+      retries: 20
+
+  api:
+    build: ./backend
+    container_name: consultas-api
+    environment: &entorno
+      DATABASE_URL: postgresql+psycopg://consultas:consultas@db:5432/consultas
+      REDIS_URL: redis://redis:6379/0
+      JWT_SECRETO: ${JWT_SECRETO:-cambiar-este-secreto-en-produccion}
+      ANTHROPIC_API_KEY: ${ANTHROPIC_API_KEY:-}
+      LLM_MODELO: ${LLM_MODELO:-claude-sonnet-5-5}
+    ports:
+      - "8083:8083"
+    depends_on:
+      db:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+
+  worker:
+    build: ./backend
+    container_name: consultas-worker
+    command: ["rq", "worker", "--url", "redis://redis:6379/0", "consultas"]
+    environment: *entorno
+    depends_on:
+      api:
+        condition: service_started
+      redis:
+        condition: service_healthy
+
+  web:
+    build: ./frontend
+    container_name: consultas-web
+    ports:
+      - "5174:80"
+    depends_on:
+      - api
+
+volumes:
+  consultas-datos:

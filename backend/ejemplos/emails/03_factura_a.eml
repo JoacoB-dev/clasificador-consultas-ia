@@ -1,0 +1,13 @@
+From: Administración Kiosco El Sol <admin@kioscoelsol.example>
+To: atencion@bazarlaesquina.example
+Subject: Pedido de factura A
+Date: Sun, 04 Oct 2026 09:05:00 -0300
+Message-ID: <demo-0003@ejemplo.com>
+MIME-Version: 1.0
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: 8bit
+
+Buenos días, necesitamos la factura A del pedido 105220 a nombre de
+Kiosco El Sol SRL, CUIT 30-70000000-1. Pagamos por transferencia $ 34.500.
+
+Saludos cordiales.
